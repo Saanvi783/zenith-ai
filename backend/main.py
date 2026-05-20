@@ -5,13 +5,22 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import os
 
-# Load environment variables
+# =========================================
+# Load Environment Variables
+# =========================================
+
 load_dotenv()
 
-# FastAPI app
+# =========================================
+# FastAPI App
+# =========================================
+
 app = FastAPI()
 
-# CORS setup
+# =========================================
+# CORS Setup
+# =========================================
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,7 +29,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# =========================================
 # OpenRouter Client
+# =========================================
+
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENROUTER_API_KEY")
@@ -41,6 +53,42 @@ class AnswerRequest(BaseModel):
     question: str
     answer: str
 
+# =========================================
+# Filler Word Detection
+# =========================================
+
+def detect_filler_words(text):
+
+    filler_words = [
+        "um",
+        "uh",
+        "like",
+        "basically",
+        "actually",
+        "you know",
+        "hmm"
+    ]
+
+    text = text.lower()
+
+    counts = {}
+
+    total_fillers = 0
+
+    for word in filler_words:
+
+        count = text.count(word)
+
+        if count > 0:
+
+            counts[word] = count
+
+            total_fillers += count
+
+    return {
+        "counts": counts,
+        "total_fillers": total_fillers
+    }
 
 # =========================================
 # Home Route
@@ -52,7 +100,6 @@ def home():
     return {
         "message": "Zenith AI Backend Running"
     }
-
 
 # =========================================
 # Generate Interview Questions
@@ -97,13 +144,14 @@ def generate_interview(data: InterviewRequest):
             "error": str(e)
         }
 
-
 # =========================================
 # Analyze Candidate Answers
 # =========================================
 
 @app.post("/analyze-answer")
 def analyze_answer(data: AnswerRequest):
+
+    filler_analysis = detect_filler_words(data.answer)
 
     prompt = f"""
     You are an expert technical interviewer.
@@ -140,7 +188,10 @@ def analyze_answer(data: AnswerRequest):
 
         return {
             "feedback":
-            completion.choices[0].message.content
+            completion.choices[0].message.content,
+
+            "filler_analysis":
+            filler_analysis
         }
 
     except Exception as e:

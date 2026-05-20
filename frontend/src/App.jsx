@@ -14,48 +14,50 @@ function App() {
   const [answer, setAnswer] = useState("")
   const [feedback, setFeedback] = useState("")
 
+  const [fillerAnalysis, setFillerAnalysis] = useState(null)
+
   const [loading, setLoading] = useState(false)
+
   const recognitionRef = useRef(null)
 
-
   // ===================================
-// Speech Recognition
-// ===================================
+  // Speech Recognition
+  // ===================================
 
-const startListening = () => {
+  const startListening = () => {
 
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition
 
-  if (!SpeechRecognition) {
+    if (!SpeechRecognition) {
 
-    alert("Speech Recognition not supported")
+      alert("Speech Recognition not supported")
 
-    return
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = "en-US"
+
+    recognition.onresult = (event) => {
+
+      const transcript =
+        event.results[0][0].transcript
+
+      setAnswer(transcript)
+    }
+
+    recognition.start()
+
+    recognitionRef.current = recognition
   }
 
-  const recognition = new SpeechRecognition()
-
-  recognition.continuous = false
-  recognition.interimResults = false
-  recognition.lang = "en-US"
-
-  recognition.onresult = (event) => {
-
-    const transcript =
-      event.results[0][0].transcript
-
-    setAnswer(transcript)
-  }
-
-  recognition.start()
-
-  recognitionRef.current = recognition
-}
-
   // ===================================
-  // Generate Questions
+  // Generate Interview
   // ===================================
 
   const generateInterview = async () => {
@@ -111,6 +113,10 @@ const startListening = () => {
 
       setFeedback(response.data.feedback)
 
+      setFillerAnalysis(
+        response.data.filler_analysis
+      )
+
     } catch (error) {
 
       console.log(error)
@@ -128,6 +134,7 @@ const startListening = () => {
 
     setAnswer("")
     setFeedback("")
+    setFillerAnalysis(null)
 
     setCurrentQuestion(currentQuestion + 1)
   }
@@ -214,6 +221,21 @@ const startListening = () => {
               Interview Question
             </h2>
 
+            <p className="text-cyan-400 mb-4 text-lg">
+              Question {currentQuestion + 1} / {questions.length}
+            </p>
+
+            <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
+
+              <div
+                className="bg-cyan-400 h-3 rounded-full transition-all duration-500"
+                style={{
+                  width: `${((currentQuestion + 1) / questions.length) * 100}%`
+                }}
+              ></div>
+
+            </div>
+
             <p className="text-xl text-gray-300">
               {questions[currentQuestion]}
             </p>
@@ -233,10 +255,10 @@ const startListening = () => {
             />
 
             <button
-            onClick={startListening}
-            className="w-full bg-purple-500 text-white font-bold py-4 rounded-xl mt-6 hover:bg-purple-400 transition"
+              onClick={startListening}
+              className="w-full bg-purple-500 text-white font-bold py-4 rounded-xl mt-6 hover:bg-purple-400 transition"
             >
-            🎤 Start Voice Answer
+              🎤 Start Voice Answer
             </button>
 
             <button
@@ -263,6 +285,51 @@ const startListening = () => {
               <p className="text-gray-300">
                 {feedback}
               </p>
+
+              {/* Filler Word Analytics */}
+
+              {fillerAnalysis && (
+
+                <div className="mt-8 bg-black border border-gray-700 p-6 rounded-2xl">
+
+                  <h3 className="text-2xl font-bold text-cyan-400 mb-4">
+                    Communication Analytics
+                  </h3>
+
+                  <p className="text-lg mb-4">
+                    Total Filler Words:
+                    <span className="text-red-400 font-bold">
+                      {" "}
+                      {fillerAnalysis.total_fillers}
+                    </span>
+                  </p>
+
+                  <div className="space-y-2">
+
+                    {
+                      Object.entries(
+                        fillerAnalysis.counts
+                      ).map(([word, count]) => (
+
+                        <div
+                          key={word}
+                          className="flex justify-between bg-gray-900 p-3 rounded-lg"
+                        >
+
+                          <span>{word}</span>
+
+                          <span className="text-red-400 font-bold">
+                            {count}
+                          </span>
+
+                        </div>
+                      ))
+                    }
+
+                  </div>
+
+                </div>
+              )}
 
               <button
                 onClick={nextQuestion}
