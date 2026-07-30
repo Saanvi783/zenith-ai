@@ -2,6 +2,7 @@ import os
 import json
 from dotenv import load_dotenv
 from openai import OpenAI
+from services.general_service import ask_zenith
 
 load_dotenv()
 
@@ -31,62 +32,37 @@ Focus Area: {topic}
 Generate exactly 5 interview questions.
 
 Rules:
-
-- Questions must sound like a real interviewer.
-- Avoid giving LeetCode problem statements.
-- Ask conceptual questions first.
-- Then ask implementation questions.
-- Then ask one behavioral question if appropriate.
-- Keep every question under 40 words.
-
-Return ONLY a JSON array.
+- Questions should sound like a real interviewer.
+- Avoid LeetCode problem statements.
+- Mix conceptual and practical questions.
+- Return ONLY a JSON array.
 
 Example:
 
 [
-"What is the difference between BFS and DFS?",
-"How would you implement an LRU Cache?",
-"Explain HashMap collisions.",
-"How would you optimize this algorithm?",
-"Tell me about a difficult bug you solved."
+  "Question 1",
+  "Question 2",
+  "Question 3",
+  "Question 4",
+  "Question 5"
 ]
 """
 
-    completion = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
+    response = ask_zenith(
+        "You are Zenith AI's Interview Engine.",
+        prompt
     )
 
-    response = completion.choices[0].message.content
-
-    if not response:
-        raise Exception("AI returned an empty response.")
-
-    response = response.replace("```json", "")
-    response = response.replace("```", "")
-    response = response.strip()
+    response = response.replace("```json", "").replace("```", "").strip()
 
     try:
         questions = json.loads(response)
-
     except Exception:
-
-        questions = []
-
-        for line in response.split("\n"):
-
-            line = line.strip()
-
-            if line:
-
-                line = line.lstrip("1234567890.- ")
-
-                questions.append(line)
+        questions = [
+            line.strip("1234567890.- ")
+            for line in response.split("\n")
+            if line.strip()
+        ]
 
     return questions
 
