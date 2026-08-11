@@ -85,19 +85,6 @@ public class OrchestratorService {
             case "interview":
                 conversation.setCurrentTask("interview");
                 conversationRepository.save(conversation);
-                
-                // Start a new mock interview session and generate the first question
-                InterviewSession interviewSession = interviewService.startInterview(
-                        conversation.getStudentId(), "General", "Software Engineer", "Medium", query
-                );
-                
-                // Fetch the question we just created
-                String firstQuestion = "";
-                var qList = interviewService.startInterview(conversation.getStudentId(), "General", "Software Engineer", "Medium", query);
-                // Wait, startInterview above created a second one. Let's fix this in flow.
-                // We'll read the question text from the started session.
-                // Actually, let's make sure we only start it once!
-                // Let's modify our logic below:
                 break;
 
             case "company":

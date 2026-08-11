@@ -11,7 +11,7 @@ import java.util.List;
 public class OpenRouterService {
 
     private final RestClient restClient;
-    private final String model = "meta-llama/llama-3.1-8b-instruct:free";
+    private final String model = "openrouter/free";
 
     @Autowired
     public OpenRouterService(RestClient restClient) {

@@ -98,7 +98,6 @@ export default function PlacementAssistant() {
             padding: "25px",
             borderRadius: "12px",
             color: "white",
-            whiteSpace: "pre-wrap",
             lineHeight: "1.8",
             fontSize: "16px",
             overflowWrap: "break-word",
